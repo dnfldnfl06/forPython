@@ -1,12 +1,15 @@
-import pygame
+import pygame, math, random
 #11.29 map 밖으로 나갔을 경우 반대쪽으로 나온다던지 하는 기능 만들어보기 #1
 #11.29 dash 를 만들수 있을듯 #2
 #11.29 sqaure위치가 가운데가 아니라 직관적이지 못하다#3
+#11.29 set_mode에 flags Sequence depth 파악하기 #4
 pygame.init()
 
 #Initialize variables:
 clock = pygame.time.Clock()
-surface = pygame.display.set_mode((800,600)) # ==screen
+s_w = 850 #screen_width
+s_h = 600 #screen_height
+surface = pygame.display.set_mode((s_w,s_h),) # ==screen
 green = 0,255,0
 red = 255,0,0
 blue = 0,0,255
@@ -24,28 +27,34 @@ class Square:
     def move(self):
         if self.direction =='E':
             self.rect.x = self.rect.x+self.speed
-            if self.rect.x>800: #1 구현 very lower level
-                self.rect.x =-100
+            if self.rect.x>s_w: #1 구현 very lower level
+                self.rect.x =-50
         elif self.direction =='W':
             self.rect.x = self.rect.x-self.speed
             if self.rect.x<-50: 
-                self.rect.x =800
+                self.rect.x =s_w
         elif self.direction =='N':
             self.rect.y = self.rect.y-self.speed
             if self.rect.y<-50:
-                self.rect.y =600
+                self.rect.y =s_h
         elif self.direction =='S':
             self.rect.y = self.rect.y+self.speed
-            if self.rect.y>550: 
+            if self.rect.y>s_h: 
                 self.rect.y =-50
     
     def draw(self,surface):
         pygame.draw.rect(surface,self.color,self.rect)
         
+    def collided(self, other_rect):
+        #Return True if self collided with other_rect
+        return self.rect.colliderect(other_rect)  #cross line같이 여러 상황에서 충돌 판별함수 제작 어려우니 있는 mathud사용
+        
+        
 #Build a square 화면에 만들기
 sq = Square(blue,200,200,50,50,5)
 
 bullets = []
+enemies = []
 
 
 #Main Program loop
@@ -72,13 +81,36 @@ while not done:
                 bullet.direction = sq.direction
                 bullets.append(bullet)
     #Updare game objects
-    sq.move()
     for b in bullets:
         b.move()
+    for e in enemies:
+        e.move()
+    sq.move()
+    #spawn enemies on the top of the screen and tell them to move down
+    if random.randint(1,30) == 15:  #15  doesn't matter
+        x = random.randint(0,s_w-40)
+        e = Square(red,x,-40,40,40,3)
+        e.direction = 'S'
+        enemies.append(e)
+        
+    #check for collisions
+    for b in bullets:
+        for e in enemies:
+            if b.collided(e.rect):
+                e.color = "white"#Testing
+                enemies.remove(e)
+                bullets.remove(b)
+    '''for i in reversed(range(len(bullets))):
+        for j in reversed(range(len(enemies))):
+            if bullets[i].collided(enemies[j].rect):
+                del enemies[j]
+                del enemies[i]'''
     #All the drawing
     surface.fill(black) #fill surface with black 배경
     for b in bullets:
         b.draw(surface)
+    for e in enemies:
+        e.draw(surface)
     #Drawing goes here
     sq.draw(surface)
     
