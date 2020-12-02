@@ -1,10 +1,12 @@
+#12.02 snap off occur #5 sesolved 12.02// blanc reset 
+
 import pygame, math, random
 
 pygame.init()
 
 #Initialize variables:
 clock = pygame.time.Clock()
-s_w = 1000 #screen_width
+s_w = 800 #screen_width
 s_h = 600 #screen_height
 screen = pygame.display.set_mode((s_w,s_h)) # ==screen
 green = 0,255,0
@@ -13,9 +15,11 @@ blue = 0,0,255
 yellow = 255,255,0
 white = 255,255,255
 black = 0,0,0
-background = pygame.image.load('/Users/dnfld/Desktop/img.png')
-rocket = pygame.image.load('/Users/dnfld/Desktop/rocket.png')
-
+background = pygame.image.load('/Users/dnfld/Desktop/teamKimImg/img.png')
+rocket = pygame.image.load('/Users/dnfld/Desktop/teamKimImg/rocket.png')
+laser = pygame.image.load('/Users/dnfld/Desktop/teamKimImg/laser.png')
+monster_mini1 = pygame.image.load('/Users/dnfld/Desktop/teamKimImg/monster8.png')
+monster_Boss = pygame.image.load('/Users/dnfld/Desktop/teamKimImg/monster1.png')
 class Obj:
     def __init__(self,x,y,speed,img):
         self.x = x
@@ -44,34 +48,51 @@ class Rocket(Obj):
         self.width = width
         self.height = height
     def move(self):
+        xchange = 0
+        ychange = 0
         if self.direction =='E':
-            self.x = self.x+self.speed
+            xchange = self.speed
             if self.x>s_w:
                 self.x = -self.width/4 #smooth movement when Obj come out the Screen
         elif self.direction =='W':
-            self.x = self.x-self.speed
+            xchange = -self.speed
             if self.x<-self.width/4:
                 self.x=s_w-self.width/4
         elif self.direction =='N':
-            self.y = self.y-self.speed
+            ychange = -self.speed
             if self.y<-self.height/4:
                 self.y = s_h-self.height/4
         elif self.direction =='S':
-            self.y = self.y+self.speed
+            ychange = +self.speed
             if self.y >s_h:
                 self.y = -self.height/4
-     #아 그냥 hp만 만들어 두고 true일때 rck.hp-=1하면 되겠네    
-    '''def damaged(self,other_rect):             #2     1,2중에 뭐가 더 효율적일까..
-        if(super().collided(other_rect)):
-            hp-=1                                
-        '''
+        self.x = self.x+xchange
+        self.y = self.y+ychange
+     #아 그냥 hp만 만들어 두고 true일때 rck.hp-=1하면 되겠네
+class Enemy(Obj):
+     def __init__(self,x,y,speed,img,width,height):
+         super().__init__(x,y,speed,img)
+         self.width =width
+         self.direction = 'S'
+     def making(self,e_count):
+         while e_count>0:
+             if random.randint(1,30) == 15:
+                 self.x = random.randint(self.width,s_w-self.width)
+                 e = Enemy(self.x,self.y,self.speed,self.img,20,20)
+                 enemies.append(e)
+                 e_count = e_count-1
 #Main Program loop
 done = False
-screen.blit(background,(0,0))
 #Build Objects
 rck = Rocket(100,100,5,rocket,50,50)
-bullets = []
+enemy1 = Enemy(0,-40,3,monster_mini1,20,20) #mini Space ship
+enemy2 = Enemy(0,0,0,monster_Boss,100,100) #Boss monster
+bullets = [] #총알list
+enemies = [] # 적생성
+count = 0
 while not done:
+    #Get user input
+    
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             done = True
@@ -89,20 +110,34 @@ while not done:
             #Fire a bullet
                 spawnX = rck.x+rck.width/2
                 spawnY = rck.y+rck.height/2
-                bullet = Obj(spawnX,spawnY,10,rocket)# need a bullet image
+                bullet = Obj(spawnX,spawnY,10,laser)# need a bullet image
                 bullets.append(bullet)
-        for b in bullets:
-            b.move()
-        rck.move()
+                count = count+1
+                enemy1.making(1) 
+    if count>3:
+        enemy2.making(1)
+        count=0
+#upload game objects
+    for b in bullets:
+        b.move()
+    for e in enemies:
+        e.move()
+    rck.move()
+    
+    
+    
     #All the drawing
-        screen.fill(white)
-        for b in bullets:
-            b.draw(screen)
+    screen.fill(white)
+    screen.blit(background,(0,0))
+    for b in bullets:
+        b.draw(screen)
+    for e in enemies:
+        e.draw(screen)
 
-        rck.draw(screen)
+    rck.draw(screen)
 
-        pygame.display.flip()
-        clock.tick(30)#30 FPS
+    pygame.display.flip()
+    clock.tick(30)#30 FPS
 pygame.quit()
 exit()
 
