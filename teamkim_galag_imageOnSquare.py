@@ -11,8 +11,13 @@ clock = pygame.time.Clock()
 s_w = 800 #screen_width
 s_h = 600 #screen_height
 screen = pygame.display.set_mode((s_w,s_h)) # ==screen
-scene = 0 #장면 page
-scenario = [] #scenes list  scene_list is better?
+ 
+scenario = [[0,0,10,False,'boosts'],[0,3,5,False,'boosts'],
+            [0,1,5,False,'boosts'],[0,1,5,False,'boosts'],
+            [0,2,20,False,'boosts'],[0,0,5,False,'boosts'],
+            [0,3,20,False,'boosts']] #scenes list  scene_list is better?
+#장면 page [background,mini_monster_type,minimonster_frequency,boss_existence,item]
+scene_counts = 0
 
 green = 0,255,0
 red = 255,0,0
@@ -21,11 +26,17 @@ yellow = 255,255,0
 white = 255,255,255
 black = 0,0,0
 
+for i in range(0,7): # scenario background setting #좀 길게 늘이고 싶으면 배경 사진 추가하고 list range 조절
+    scenario[i][0] = '/Users/dnfld/Desktop/teamKimImg/background/'+str(i)+'.png'
+monster_type = [0,1,2,3,4]
+for i in range(0,5):
+    monster_type[i] = '/Users/dnfld/Desktop/teamKimImg/monster/mini_monster'+str(i)+'.png'
 
-background = pygame.image.load('/Users/dnfld/Desktop/teamKimImg/background/4.png')
+
+background = pygame.image.load(scenario[0][0])
 rocket = pygame.image.load('/Users/dnfld/Desktop/teamKimImg/rocket/r1.png')
 laser = pygame.image.load('/Users/dnfld/Desktop/teamKimImg/laser/laser3.png')
-monster_mini1 = pygame.image.load('/Users/dnfld/Desktop/teamKimImg/monster/monster8.png')
+monster_mini = pygame.image.load(monster_type[0])
 monster_Boss = pygame.image.load('/Users/dnfld/Desktop/teamKimImg/monster/monster.png')
 
 
@@ -80,6 +91,9 @@ class Obj:
         return self.rect.colliderect(other_rect)  #cross line같이 여러 상황에서 충돌 판별함수 제작 어려우니 있는 mathud사용
 class Rocket(Obj):
     def move(self):
+        global scene_counts #scene이 전역 변수기 때문에 가져와야 쓸수 있음
+        global background
+        global monster_mini
         if self.direction =='E':
             self.rect.x = self.rect.x+self.speed
             if self.rect.x>s_w: #1 11.30 level1구현 level2 width/4 
@@ -92,6 +106,9 @@ class Rocket(Obj):
             self.rect.y = self.rect.y-self.speed
             if self.rect.y<-self.height/4:
                 self.rect.y =s_h
+                scene_counts+=1
+                background = pygame.image.load(scenario[scene_counts][0])
+                monster_mini = pygame.image.load(monster_type[scenario[scene_counts][1]])
         elif self.direction =='S':
             self.rect.y = self.rect.y+self.speed
             if self.rect.y>s_h: 
@@ -99,7 +116,7 @@ class Rocket(Obj):
 
 
 
-rocket = Rocket(white,10,10,10,20,5,rocket,-20,-10,True)
+rocket = Rocket(white,400,500,10,20,5,rocket,-20,-10,True)
 bullets = []
 enemies = []
 #Main Program loop
@@ -134,9 +151,9 @@ while not done:
         e.move()
     rocket.move()
     #spawn enemies on the top of the screen and tell them to move down
-    if random.randint(1,30) == 15:  #15  doesn't matter
+    if random.randint(1,30) == scenario[scene_counts][2]:  #15  doesn't matter
         x = random.randint(0,s_w-40)
-        e = Obj(white,x,-40,35,20,3,monster_mini1,-20,-25,False)
+        e = Obj(white,x,-40,35,20,2,monster_mini,-20,-25,False)
         e.direction = 'S'
         enemies.append(e)
        
