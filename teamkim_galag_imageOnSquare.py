@@ -2,6 +2,7 @@
    change the solution make the fitted Square on image 
    to use a rect.colliderect(other_rect)'''
 # add a hp bar on rocket
+#12.07 make gun_type but shotgun failure  I think an easy way to solve it is just bigger square with bigger bullet image
 import pygame, math, random
 
 pygame.init()
@@ -74,7 +75,10 @@ class Obj:
                 self.out = False
     
     def draw(self,screen):
-        if self.hp_check:
+        pygame.draw.rect(screen,self.color,self.rect)
+        screen.blit(self.img,(self.rect.x+self.xchange,self.rect.y+self.ychange))
+       
+        if self.hp_check: # hp_bar existence
             if self.hp_rect.width>0:
                 self.hp_rect.x = self.rect.x-5
                 self.hp_rect.y = self.rect.y+40
@@ -82,13 +86,11 @@ class Obj:
                 red_rect = pygame.Rect(self.hp_rect.x+self.hp_rect.width,self.hp_rect.y,20-self.hp_rect.width,10)
                 pygame.draw.rect(screen,red,red_rect)
             #else: gameover 적용 가능
-                
-        pygame.draw.rect(screen,self.color,self.rect)
-        screen.blit(self.img,(self.rect.x+self.xchange,self.rect.y+self.ychange))
-        
     def collided(self, other_rect):
         #Return True if self collided with other_rect
         return self.rect.colliderect(other_rect)  #cross line같이 여러 상황에서 충돌 판별함수 제작 어려우니 있는 mathud사용
+        
+    
 class Rocket(Obj):
     def move(self):
         global scene_counts #scene이 전역 변수기 때문에 가져와야 쓸수 있음
