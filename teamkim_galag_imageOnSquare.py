@@ -13,10 +13,10 @@ s_w = 800 #screen_width
 s_h = 600 #screen_height
 screen = pygame.display.set_mode((s_w,s_h)) # ==screen
  
-scenario = [[0,0,10,False,'boosts'],[0,3,5,False,'boosts'],
-            [0,1,5,False,'boosts'],[0,1,5,False,'boosts'],
-            [0,2,20,False,'boosts'],[0,0,5,False,'boosts'],
-            [0,3,20,False,'boosts']] #scenes list  scene_list is better?
+scenario = [[0,0,10,False,0],[0,3,5,False,0],
+            [0,1,5,False,0],[0,1,5,False,0],
+            [0,2,20,False,0],[0,0,5,False,0],
+            [0,3,20,False,0]] #scenes list  scene_list is better?
 #장면 page [background,mini_monster_type,minimonster_frequency,boss_existence,item]
 scene_counts = 0
 
@@ -37,6 +37,7 @@ for i in range(0,5):
 background = pygame.image.load(scenario[0][0])
 rocket = pygame.image.load('/Users/dnfld/Desktop/teamKimImg/rocket/r1.png')
 laser = pygame.image.load('/Users/dnfld/Desktop/teamKimImg/laser/laser3.png')
+laser_e = pygame.image.load('/Users/dnfld/Desktop/teamKimImg/laser/laser5.png')
 monster_mini = pygame.image.load(monster_type[0])
 monster_Boss = pygame.image.load('/Users/dnfld/Desktop/teamKimImg/monster/monster.png')
 
@@ -92,10 +93,12 @@ class Obj:
         
     
 class Rocket(Obj):
+    
     def move(self):
         global scene_counts #scene이 전역 변수기 때문에 가져와야 쓸수 있음
         global background
         global monster_mini
+        global enemies
         if self.direction =='E':
             self.rect.x = self.rect.x+self.speed
             if self.rect.x>s_w: #1 11.30 level1구현 level2 width/4 
@@ -109,14 +112,32 @@ class Rocket(Obj):
             if self.rect.y<-self.height/4:
                 self.rect.y =s_h
                 scene_counts+=1
+                enemies = []
+                e = Enemy(white,0,40,35,20,3,monster_mini,-20,-25,False)
+                e.makingEnm(scenario[scene_counts][2])
                 background = pygame.image.load(scenario[scene_counts][0])
                 monster_mini = pygame.image.load(monster_type[scenario[scene_counts][1]])
         elif self.direction =='S':
             self.rect.y = self.rect.y+self.speed
             if self.rect.y>s_h: 
                 self.rect.y =-self.height/4
-
-
+class Enemy(Obj):
+    def makingEnm(self,counts):
+        global enemies
+        for i in range(0,counts):
+             rand = random.randint(0,200)
+             e = Enemy(white,rand*s_h/100,rand+20,35,20,self.speed,monster_mini,-20,-25,False)
+             e.direction = 'E'
+             enemies.append(e)
+    def move(self):
+        if self.direction =='E':
+            self.rect.x = self.rect.x+self.speed
+            if self.rect.x>s_w: #1 11.30 level1구현 level2 width/4 
+                self.direction = 'W'
+        elif self.direction =='W':
+            self.rect.x = self.rect.x-self.speed
+            if self.rect.x<0: 
+                self.direction = 'E'
 
 rocket = Rocket(white,400,500,10,20,5,rocket,-20,-10,True)
 bullets = []
@@ -131,6 +152,8 @@ while not done:
             done =True
         elif event.type ==pygame.KEYDOWN:
             print(event.key) #Print value of key press
+            spawnX = rocket.rect.x+rocket.rect.width/2
+            spawnY = rocket.rect.y+rocket.rect.height/2
             if event.key == 119:#w
                 rocket.direction = 'N'
             elif event.key == 97: #A
@@ -141,11 +164,9 @@ while not done:
                 rocket.direction = 'E'
             elif event.key == 32: #spacebar
                 # Fire a bullet
-                spawnX =rocket.rect.x-10+rocket.rect.width/2
-                spawnY = rocket.rect.y-10+rocket.rect.height/2
-                bullet = Obj(white,spawnX,spawnY,7,10,10,laser,-2,-2,False)
-                bullet.direction = 'N'
-                bullets.append(bullet)
+                bullet1 = Obj(white,spawnX-10,spawnY-10,7,10,10,laser,-2,-2,False)
+                bullets.append(bullet1)
+                
     #Updare game objects
     for b in bullets:
         b.move()
@@ -153,11 +174,14 @@ while not done:
         e.move()
     rocket.move()
     #spawn enemies on the top of the screen and tell them to move down
-    if random.randint(1,30) == scenario[scene_counts][2]:  #15  doesn't matter
-        x = random.randint(0,s_w-40)
-        e = Obj(white,x,-40,35,20,2,monster_mini,-20,-25,False)
-        e.direction = 'S'
-        enemies.append(e)
+    
+    if random.randint(1,30) == 10:  #15  doesn't matter
+        for e in enemies:
+            spawnX = e.rect.x+rocket.rect.width/2
+            spawnY = e.rect.y+rocket.rect.height/2
+            bullet_enm = Obj(white,spawnX-10,spawnY-10,7,10,10,laser_e,-2,-2,False)
+            bullet_enm.direction = 'S'
+            enemies.append(bullet_enm)#enemy bullet 으로 활용가능
        
     #check for collisions
     for e in enemies:
@@ -174,8 +198,9 @@ while not done:
             elif b.collided(e.rect):
                 enemies.remove(e)
                 bullets.remove(b)
+                
             
-    '''for i in reversed(range(len(bullets))):
+            '''for i in reversed(range(len(bullets))):
         for j in reversed(range(len(enemies))):
             if bullets[i].collided(enemies[j].rect):
                 del enemies[j]
