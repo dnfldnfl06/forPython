@@ -7,6 +7,7 @@
 #12.10 add a condition variable name change  /  boss
 #12.11 pause,retry mathud when gameover & fixed scenario, var done 
 #12.13 item class
+#12.14 all the other things.... 후우...
 import pygame, math, random
 
 pygame.init()
