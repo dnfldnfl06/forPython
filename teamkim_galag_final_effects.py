@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 '''20.12.03 too difficult to make a collided method on imageObject
    change the solution make the fitted Square on image 
    to use a rect.colliderect(other_rect)'''
