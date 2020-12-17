@@ -35,6 +35,7 @@ rockets = [0,1,2]
 boss_attack = [0,1,2,3,4,5,6,7]
 laser = [0,1,2,3,4,5]
 enm_laser = [0,1,2,3,4]
+effect = [0,1,2,3,4]
 scene_counts = 0
 change = False
 green = 0,255,0
@@ -53,6 +54,7 @@ for i in range(0,5): #images match monster types
     item_type[i+1] = pygame.image.load(directory+'/item/item'+str(i+1)+'.png')
     laser[i] = pygame.image.load(directory+'/laser/'+str(i)+'.png')
     boss_attack[i+1] = pygame.image.load(directory+'/boss_skill/'+str(i)+'.png')
+    effect[i] = pygame.image.load(directory+'/effect/'+str(i)+'.png')
 laser[5] = pygame.image.load(directory+'/laser/5.png')
 boss_attack[6] = pygame.image.load(directory+'/boss_skill/5.png')
 boss_attack[7] = pygame.image.load(directory+'/boss_skill/6.png')
@@ -69,7 +71,7 @@ continue_image = pygame.image.load(directory+'/information/continue.png')
 gameover_image = pygame.image.load(directory+'/information/game_over.png')
 go_image = pygame.image.load(directory+'/information/go.png')
 ending = pygame.image.load(directory+'/information/ending.png')
-
+explosions = pygame.image.load(directory+'/effect/0.png')
 
 class Obj:
     def __init__(self,color,x,y,width,height,speed,direction,img,xchange,ychange,hp):
@@ -335,6 +337,9 @@ class Item(Obj):
         elif type ==4:
             bullet_speed +=5
         elif type ==5:
+            effect_spots.append(7)
+            effect_spots.append((400,300))
+            effect_spots.append(effect[4])
             enemies = []
 class S_bullet: #Rocket Skill
     def __init__(self, color, x, y, width, height,xchange,ychange,speed,img,targetx,targety):
@@ -369,6 +374,14 @@ class S_bullet: #Rocket Skill
         return self.rect.colliderect(other_rect)
 #구성요소       
 
+class Effects:
+    def __init__(self,img):
+       self.img = img
+       self.count = 5
+    def draw(self,x,y):
+        screen.blit(self.img, x,y)
+        self.count -=1
+
 
 
 rocket = Rocket(white,350,450,70,40,6,'S',rockets[0],-20,-10,10)
@@ -387,6 +400,7 @@ bullets_boss = []
 boss_ult_skill=False
 launch_order = 0 #boss launch
 
+effect_spots = []
 
 #Main Program loop
 done = False
@@ -541,6 +555,9 @@ while not done:
                 break
                 
             elif b.collided(e.rect):
+                effect_spots.append(5)
+                effect_spots.append((b.rect.x,b.rect.y))
+                effect_spots.append(effect[0])
                 enemies.remove(e)
                 bullets.remove(b)
                 break
@@ -551,12 +568,18 @@ while not done:
                 if boss.collided(b):
                     boss.damaged()
                     bullets.remove(b)
+                    effect_spots.append(5)
+                    effect_spots.append((b.rect.x,b.rect.y))
+                    effect_spots.append(effect[2])
                     break
     
     for b_e in bullets_enm:  
         if rocket.collided(b_e):
             rocket.damaged()
             bullets_enm.remove(b_e)
+            effect_spots.append(5)
+            effect_spots.append((b.rect.x,b.rect.y))
+            effect_spots.append(effect[2])
         elif b_e.out_check == False:
             bullets_enm.remove(b_e)
     for item in items:
@@ -574,7 +597,6 @@ while not done:
         if rocket.collided(boss)and damage_count:
             damage_count=0
             rocket.damaged()
-            continue
     
     #All the drawing
     #fill surface배경
@@ -591,6 +613,18 @@ while not done:
         b_e.draw(screen)
     for b_b in bullets_boss:
         b_b.draw(screen)
+    for i in range(0,len(effect_spots),3):
+        if effect_spots[i]:
+            effect_spots[i]-=1
+            screen.blit(effect_spots[i+2],effect_spots[i+1])
+    for i in range(0,len(effect_spots),3):
+        if not effect_spots[i]:
+            del effect_spots[i]
+            del effect_spots[i]
+            del effect_spots[i]
+            break
+            
+    
     if boss: 
         if boss.hp_rect.width<0:
             boss = False
