@@ -22,19 +22,18 @@ clock = pygame.time.Clock()
 s_w = 800 #screen_width
 s_h = 600 #screen_height
 screen = pygame.display.set_mode((s_w,s_h)) # ==screen  pygame.FULLSCREEN
-
-scenario = [[0,0,0,0,0],[0,0,5,0,0],[0,0,3,1,4],
-            [0,1,7,0,1],[0,1,10,0,2],[0,2,10,0,4],
+i = random.randint(0,5)
+scenario = [[0,0,0,0,0],[0,4,3*i,3,1],[0,0,3*i,1,4],
+            [0,1,7,0,1],[0,1,10,0,i],[0,2,10,0,4],
             [0,2,30,0,5],[0,3,20,0,1],[0,3,5,2,3],
-            [0,3,10,1,0],[0,4,10,2,2],[0,4,15,0,4],
-            [0,3,15,3,3],[0,4,15,3,1]] 
-#장면 page [background,mini_monster_type,mini_monster_counts,boss_type,item,?]
+            [0,3,10,1,i],[0,4,10,2,i],[0,4,15,0,4],
+            [0,i,15,3,3],[0,4,15,3,1]] 
+#장면 page [background,mini_monster_type,mini_monster_counts,boss_type,item]
 monster_type = [0,1,2,3,4]
 boss_type = [[],#boss type  [[boss_img,skill_counts,width,height,xchange,ychange,Hp]]
              [0,5,100,200,-50,-50,20],
              [1,6,100,60,-50,-20,30],
              [2,7,100,60,-60,-50,50]]
-
 item_type = [0,0,0,0,0,0]
 rockets = [0,1,2]
 boss_attack = [0,1,2,3,4,5,6,7]
@@ -49,6 +48,9 @@ blue = 0,0,255
 yellow = 255,255,0
 white = 255,255,255
 black = 0,0,0
+direction = ['EN','ES','WN','WS']
+
+
 for i in range(0,14): 
     scenario[i][0] = pygame.image.load(directory+'background/'+str(i)+'.png')#str(int((i+1)/2)) 이걸로 이미지파일을 두번씩 사용하려고 했지만 그냥 배경이미지를 늘리는게 실행면에서는 유리할 것 이다 용량은 좀 늘어났다
 
@@ -160,23 +162,25 @@ class Enemy(Obj):
     global enemies
     def makingEnm(self,counts):    
         for i in range(0,counts):
-             rand = random.randint(0,200)
-             e = Enemy(white,rand*s_h/150,rand+self.height,self.width,self.height,self.speed,self.direction,monster_mini,-20,-25,False)
+             rand = random.randint(0,400)
+             rand2 = random.randint(1,2)
+             e = Enemy(white,rand*2,rand,self.width,self.height,self.speed,rand2,monster_mini,-20,-25,False)
              enemies.append(e)
     def move(self):
-        if self.direction =='E':
+        if self.direction ==1:#'E'
             self.rect.x = self.rect.x+self.speed
             if self.rect.x>s_w: #1 11.30 level1구현 level2 width/4 
-                self.direction = 'W'
-        elif self.direction =='W':
+                self.direction = 2
+        elif self.direction ==2: #'W':
             self.rect.x = self.rect.x-self.speed
             if self.rect.x<0: 
-                self.direction = 'E'
+                self.direction = 1
 class Enemy2(Enemy):
     def makingEnm(self,counts):    
         for i in range(0,counts):
-             rand = random.randint(0,200)
-             e = Enemy2(white,rand*s_h/150,rand+self.height,self.width,self.height,self.speed,self.direction,self.img,self.xchange,self.ychange,False)
+             rand = random.randint(0,400)
+             rand2 = random.randint(0,3)
+             e = Enemy2(white,rand*2,rand,self.width,self.height,self.speed,direction[rand2],self.img,self.xchange,self.ychange,False)
              enemies.append(e)
     def move(self):
             if self.direction=='EN':
@@ -293,12 +297,15 @@ class Boss(Obj):
              e = S_bullet(white,self.rect.centerx,self.rect.centery,50,50,-70,-50,3,boss_attack[scene[3]],rocket.rect.x,rocket.rect.y)
              bullets_boss.append(e)
     def ult_skill(self):
-        e = Obj(white,random.randint(1,7)*100,-500,50,600,5+scene_counts,'S',boss_attack[scene[3]+3],-70,-100,False)
+        e = Obj(white,random.randint(1,7)*100,-500,60,600,5+scene_counts,'S',boss_attack[scene[3]+3],-70,-100,False)
         bullets_boss.append(e)
     def ult_skill2(self):
         e = Obj(white,random.randint(1,7)*100,-500,50,50,5+scene_counts,'S',boss_attack[7],-70,-50,False)
         bullets_boss.append(e)   
 class Item(Obj):
+    def __init__(self,color,x,y,width,height,speed,direction,img,xchange,ychange,hp,itemtype):
+        super().__init__(color,x,y,width,height,speed,direction,img,xchange,ychange,hp)
+        self.itemtype = itemtype
     def move(self):
             if self.direction=='EN':
                 self.rect.x=self.rect.x+self.speed
@@ -330,17 +337,17 @@ class Item(Obj):
                         self.direction='EN'
                     elif(self.rect.y<0):
                         self.direction='WS'
-    def item_type(self,type):
+    def item_type(self):
         global gun_type,bullet_speed,enemies
-        if type == 1:
+        if self.itemtype == 1:
             rocket.hp_rect.width=10*rocket.tic
-        elif type ==2:
+        elif self.itemtype ==2:
             rocket.speed +=3
-        elif type ==3:
+        elif self.itemtype ==3:
             gun_type +=1
-        elif type ==4:
+        elif self.itemtype ==4:
             bullet_speed +=5
-        elif type ==5:
+        elif self.itemtype ==5:
             effect_spots.append(7)
             effect_spots.append((400,300))
             effect_spots.append(effect[4])
@@ -460,7 +467,7 @@ while not done:
         item_num  = scene[4]
         if item_num:
             img = item_type[item_num]
-            item = Item(black,100,200,100,100,3,'EN',img,50,50,False)
+            item = Item(black,100,200,100,100,3,'EN',img,50,50,False,item_num)
             items.append(item)
         boss_num = scene[3]
         if boss_num :
@@ -489,7 +496,7 @@ while not done:
                     bullet = Obj(white,spawnX,spawnY,7,10,bullet_speed,'N',laser[2],-2,-2,False)
                 elif gun_type ==1:#more biiger one
                     bullet = Obj(white,spawnX,spawnY,20,20,bullet_speed,'N',laser[3],-5,-5,False)
-                elif gun_type ==2:#more biiger one
+                elif gun_type >=2:#more biiger one
                     bullet = Obj(white,spawnX,spawnY,20,20,bullet_speed,'N',laser[4],-5,-5,False)
                     bullets.append(bullet)#*2배로 데미지
                 bullets.append(bullet)
@@ -582,19 +589,21 @@ while not done:
             rocket.damaged()
             bullets_enm.remove(b_e)
             effect_spots.append(5)
-            effect_spots.append((b.rect.x,b.rect.y))
+            effect_spots.append((rocket.rect.x,rocket.rect.y))
             effect_spots.append(effect[2])
         elif b_e.out_check == False:
             bullets_enm.remove(b_e)
     for item in items:
         if rocket.collided(item):
-            bullets=[]
-            item.item_type(scenario[scene_counts][4])
+            item.item_type()
             items.remove(item)
     for boss_b in bullets_boss:
         if rocket.collided(boss_b):
             rocket.damaged()
             rocket.damaged()
+            effect_spots.append(10)
+            effect_spots.append((rocket.rect.x,rocket.rect.y))
+            effect_spots.append(effect[2])
             bullets_boss.remove(boss_b)
             break
     if boss:
@@ -630,9 +639,16 @@ while not done:
             
     
     if boss: 
-        if boss.hp_rect.width<0:
-            boss = False
+        if boss.hp_rect.width<=0:
+            effect_spots.append(10)
+            effect_spots.append((boss.rect.x,boss.rect.y))
+            effect_spots.append(effect[4])
             bullets_boss=[]
+            for e in enemies:
+                effect_spots.append(10)
+                effect_spots.append((e.rect.x,e.rect.y))
+                effect_spots.append(effect[4])
+            boss =False
             enemies =[]
     if not enemies and not boss:
         rocket.speed = 8
@@ -654,6 +670,7 @@ while not done:
                     if event.key == 121: # Y
                         tries+=1
                         ch = False
+                        gun_type=0
                         rocket.hp_rect.width = 10*rocket.tic
                     elif event.key == 110: # N
                             ch =False
