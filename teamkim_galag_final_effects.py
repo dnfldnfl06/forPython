@@ -22,8 +22,8 @@ clock = pygame.time.Clock()
 s_w = 800 #screen_width
 s_h = 600 #screen_height
 screen = pygame.display.set_mode((s_w,s_h)) # ==screen  pygame.FULLSCREEN
-i = random.randint(0,5)
-scenario = [[0,0,0,0,0],[0,4,3*i,3,1],[0,0,3*i,1,4],
+i = random.randint(0,4)
+scenario = [[0,0,0,0,0],[0,0,5+i,0,0],[0,0,3*i,1,4],
             [0,1,7,0,1],[0,1,10,0,i],[0,2,10,0,4],
             [0,2,30,0,5],[0,3,20,0,1],[0,3,5,2,3],
             [0,3,10,1,i],[0,4,10,2,i],[0,4,15,0,4],
@@ -286,8 +286,8 @@ class Boss(Obj):
             self.ult_skill2()
             rocket.speed=5
         elif num == 7:
-            e = Enemy2(white,0,0,10,6,10,'ES',monster_type[3],-5,-3,False)
-            e.makingEnm(5)
+            e = Enemy2(white,0,0,10,6,15,'ES',monster_type[3],-5,-3,False)
+            e.makingEnm(3)
             rocket.speed=4
         
         damage_count=1
@@ -297,10 +297,10 @@ class Boss(Obj):
              e = S_bullet(white,self.rect.centerx,self.rect.centery,50,50,-70,-50,3,boss_attack[scene[3]],rocket.rect.x,rocket.rect.y)
              bullets_boss.append(e)
     def ult_skill(self):
-        e = Obj(white,random.randint(1,7)*100,-500,60,600,5+scene_counts,'S',boss_attack[scene[3]+3],-70,-100,False)
+        e = Obj(white,random.randint(1,700),-500,100,700,5+scene_counts,'S',boss_attack[scene[3]+3],0,400,False)
         bullets_boss.append(e)
     def ult_skill2(self):
-        e = Obj(white,random.randint(1,7)*100,-500,50,50,5+scene_counts,'S',boss_attack[7],-70,-50,False)
+        e = Obj(white,rocket.rect.x,-500,50,50,20,'S',boss_attack[7],-70,-50,False)
         bullets_boss.append(e)   
 class Item(Obj):
     def __init__(self,color,x,y,width,height,speed,direction,img,xchange,ychange,hp,itemtype):
@@ -352,6 +352,7 @@ class Item(Obj):
             effect_spots.append((400,300))
             effect_spots.append(effect[4])
             enemies = []
+        else:False
 class S_bullet: #Rocket Skill
     def __init__(self, color, x, y, width, height,xchange,ychange,speed,img,targetx,targety):
         self.rect = pygame.Rect(x,y,width,height)
@@ -510,7 +511,7 @@ while not done:
                 b = S_bullet(black,spawnX,spawnY,20,20,-5,-5,bullet_speed,laser[0],x,y)
             elif gun_type==1:
                 b = S_bullet(black,spawnX,spawnY,25,25,-8,-8,bullet_speed,laser[1],x,y)
-            elif gun_type==2:
+            elif gun_type>=2:
                 b = S_bullet(black,spawnX,spawnY,30,30,-10,-10,bullet_speed,laser[5],x,y)
                 bullets.append(b)
             bullets.append(b)
@@ -545,7 +546,7 @@ while not done:
             spawnY = e.rect.centery
             bullet_enm = Obj(white,spawnX,spawnY,7,10,10,'S',enm_laser[scene[1]],-2,-2,False)
             bullets_enm.append(bullet_enm)
-    if boss and random.randint(1,40-3*scene[3]) == 2:#보스 스킬사용 확률결정
+    if boss and random.randint(1,50-2*scene_counts) == 2:#보스 스킬사용 확률결정
         boss.skill(random.randint(0,boss_type[scene[3]][1]))
                 
                  
